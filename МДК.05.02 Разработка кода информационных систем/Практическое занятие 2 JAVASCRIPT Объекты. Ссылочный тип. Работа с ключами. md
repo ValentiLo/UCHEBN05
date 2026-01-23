@@ -1,0 +1,232 @@
+# Практическое занятие 2: Объекты в JavaScript
+
+## 1. Создание объектов
+
+### Литеральная нотация (самый частый способ)
+```javascript
+const user = {
+  name: "Анна",
+  age: 25,
+  email: "anna@example.com",
+  isAdmin: false
+};
+```
+
+### С помощью конструктора Object
+```javascript
+const car = new Object();
+car.brand = "Toyota";
+car.model = "Camry";
+car.year = 2020;
+```
+
+### С помощью класса
+```javascript
+class Person {
+  constructor(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+}
+
+const person1 = new Person("Иван", 30);
+```
+
+## 2. Ссылочный тип (важное отличие от примитивов)
+
+```javascript
+// Примитивы копируются по значению
+let a = 10;
+let b = a; // b = 10 (копия значения)
+b = 20; // a останется 10
+
+// Объекты копируются по ссылке
+let obj1 = { x: 10 };
+let obj2 = obj1; // obj2 ссылается на тот же объект
+obj2.x = 20; // obj1.x тоже станет 20!
+
+// Для создания копии объекта:
+const copy1 = Object.assign({}, obj1); // поверхностная копия
+const copy2 = { ...obj1 }; // поверхностная копия (spread оператор)
+const deepCopy = JSON.parse(JSON.stringify(obj1)); // глубокая копия
+```
+
+## 3. Перебор объектов
+
+### for...in
+```javascript
+const student = {
+  name: "Мария",
+  grade: 11,
+  subjects: ["Математика", "Физика"]
+};
+
+for (let key in student) {
+  console.log(`${key}: ${student[key]}`);
+}
+```
+
+### Object.keys(), Object.values(), Object.entries()
+```javascript
+const product = {
+  id: 1,
+  name: "Ноутбук",
+  price: 50000,
+  inStock: true
+};
+
+// Получение массива ключей
+const keys = Object.keys(product); // ["id", "name", "price", "inStock"]
+
+// Получение массива значений
+const values = Object.values(product); // [1, "Ноутбук", 50000, true]
+
+// Получение массива пар [ключ, значение]
+const entries = Object.entries(product); // [["id", 1], ["name", "Ноутбук"], ...]
+
+// Использование с forEach
+Object.keys(product).forEach(key => {
+  console.log(`${key}: ${product[key]}`);
+});
+```
+
+## 4. Работа с ключами
+
+### Проверка наличия свойства
+```javascript
+const book = {
+  title: "1984",
+  author: "Оруэлл",
+  year: 1949
+};
+
+console.log("title" in book); // true
+console.log(book.hasOwnProperty("author")); // true
+console.log(book.publisher !== undefined); // false
+```
+
+### Добавление и удаление свойств
+```javascript
+const config = { theme: "dark" };
+
+// Добавление
+config.language = "ru";
+config["fontSize"] = 16;
+
+// Удаление
+delete config.theme;
+```
+
+### Динамические ключи
+```javascript
+const key = "status";
+const dynamicObject = {
+  [key]: "active",
+  [`user_${Date.now()}`]: "anonymous"
+};
+```
+
+## 5. Объединение нескольких объектов
+
+### Object.assign()
+```javascript
+const defaults = { theme: "light", language: "en" };
+const userSettings = { language: "ru", fontSize: 14 };
+
+const merged = Object.assign({}, defaults, userSettings);
+// { theme: "light", language: "ru", fontSize: 14 }
+```
+
+### Spread оператор (современный способ)
+```javascript
+const obj1 = { a: 1, b: 2 };
+const obj2 = { b: 3, c: 4 };
+const obj3 = { d: 5 };
+
+const combined = { ...obj1, ...obj2, ...obj3 };
+// { a: 1, b: 3, c: 4, d: 5 }
+// Примечание: свойства перезаписываются справа налево
+```
+
+## 6. Опциональная цепочка (Optional chaining) `?.`
+
+Позволяет безопасно обращаться к свойствам вложенных объектов без проверки на `null`/`undefined`.
+
+```javascript
+const company = {
+  name: "TechCorp",
+  address: {
+    city: "Москва",
+    street: "Ленина",
+    building: {
+      number: 15,
+      floor: 3
+    }
+  }
+};
+
+// Без опциональной цепочки
+let city;
+if (company && company.address && company.address.city) {
+  city = company.address.city;
+}
+
+// С опциональной цепочкой
+city = company?.address?.city; // "Москва"
+const zipCode = company?.address?.zipCode; // undefined (без ошибки)
+
+// С методами
+const user = {
+  getName() {
+    return "Иван";
+  }
+};
+
+console.log(user.getName?.()); // "Иван"
+console.log(user.getAge?.()); // undefined (без ошибки)
+
+// С массивами
+const arr = [1, 2, 3];
+console.log(arr?.[0]); // 1
+console.log(arr?.[10]?.prop); // undefined
+```
+
+## Практические задания
+
+### Задание 1: Создание объекта
+```javascript
+// Создайте объект "студент" с полями: имя, возраст, курс, оценки (массив)
+// Добавьте метод для вычисления среднего балла
+```
+
+### Задание 2: Объединение объектов
+```javascript
+// Создайте 3 объекта с настройками и объедините их в один
+// Решите конфликты приоритетом: userSettings > sessionSettings > defaultSettings
+```
+
+### Задание 3: Опциональная цепочка
+```javascript
+// Работайте с данными пользователя, которые могут быть неполными
+// Безопасно получите email пользователя или верните "email не указан"
+```
+
+### Задание 4: Перебор объекта
+```javascript
+// Создайте функцию, которая принимает объект и возвращает новый объект,
+// где все строковые значения преобразованы в верхний регистр
+```
+
+## Полезные методы объектов
+
+1. **Object.freeze()** - делает объект неизменяемым
+2. **Object.seal()** - запрещает добавлять/удалять свойства, но позволяет изменять существующие
+3. **Object.getPrototypeOf()** - получает прототип объекта
+4. **Object.create()** - создает объект с указанным прототипом
+
+```javascript
+const immutableObj = Object.freeze({ x: 1, y: 2 });
+// immutableObj.x = 3; // TypeError в strict mode
+```
+
+Объекты — фундаментальная структура данных в JavaScript, понимание работы с ними критически важно для эффективного программирования.
