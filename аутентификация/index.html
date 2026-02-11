@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система аутентификации</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h1>🔐 Система аутентификации</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <p style="color: #666; margin-bottom: 20px;">
+                Демонстрационная система аутентификации пользователей<br>
+                с использованием HTML, CSS и JavaScript
+            </p>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin: 30px 0;">
+            <a href="login.html" class="btn">Войти в систему</a>
+            <a href="register.html" class="btn btn-secondary">Зарегистрироваться</a>
+        </div>
+        
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-title">Функции системы:</div>
+            <ul style="color: #666; line-height: 1.6; padding-left: 20px;">
+                <li>Безопасная регистрация пользователей</li>
+                <li>Вход с запоминанием сессии</li>
+                <li>Восстановление пароля</li>
+                <li>Личный кабинет</li>
+                <li>Логирование действий</li>
+                <li>Защита от CSRF (демо)</li>
+                <li>Валидация форм</li>
+            </ul>
+        </div>
+        
+        <div class="auth-link">
+            <p>Данные хранятся в LocalStorage браузера</p>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/validation.js"></script>
+    
+    <script>
+        // Проверяем авторизацию при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            if (auth.isAuthenticated()) {
+                validator.showMessage('info', 'Вы уже авторизованы. Переход в личный кабинет...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

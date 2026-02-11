@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h1>Регистрация</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя *</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="От 3 до 20 символов" 
+                       oninput="validateUsername()">
+                <div class="error" id="usernameError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="example@domain.com"
+                       oninput="validateEmail()">
+                <div class="error" id="emailError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль *</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Минимум 8 символов"
+                       oninput="validatePassword()">
+                <div class="error" id="passwordError"></div>
+                
+                <div class="password-strength">
+                    <div>Сложность пароля: <span id="strengthText"></span></div>
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthBar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Подтверждение пароля *</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required 
+                       placeholder="Повторите пароль"
+                       oninput="validateConfirmPassword()">
+                <div class="error" id="confirmError"></div>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">Зарегистрироваться</button>
+        </form>
+        
+        <div class="auth-link">
+            Уже есть аккаунт? <a href="login.html">Войти</a> | 
+            <a href="index.html">На главную</a>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/validation.js"></script>
+    
+    <script>
+        // Функции валидации в реальном времени
+        function validateUsername() {
+            const username = document.getElementById('username').value.trim();
+            const result = validator.validateUsername(username);
+            
+            if (!result.isValid && username.length > 0) {
+                validator.showError('usernameError', result.message);
+            } else {
+                document.getElementById('usernameError').style.display = 'none';
+            }
+        }
+        
+        function validateEmail() {
+            const email = document.getElementById('email').value.trim();
+            const result = validator.validateEmail(email);
+            
+            if (!result.isValid && email.length > 0) {
+                validator.showError('emailError', result.message);
+            } else {
+                document.getElementById('emailError').style.display = 'none';
+            }
+        }
+        
+        function validatePassword() {
+            const password = document.getElementById('password').value;
+            
+            // Обновляем индикатор сложности
+            validator.updatePasswordStrength(
+                password, 
+                'strengthBar', 
+                'strengthText'
+            );
+            
+            const result = validator.validatePassword(password);
+            
+            if (!result.isValid && password.length > 0) {
+                validator.showError('passwordError', result.message);
+            } else {
+                document.getElementById('passwordError').style.display = 'none';
+            }
+            
+            // Также проверяем подтверждение пароля
+            validateConfirmPassword();
+        }
+        
+        function validateConfirmPassword() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (confirmPassword.length > 0) {
+                const result = validator.validatePasswordConfirmation(password, confirmPassword);
+                
+                if (!result.isValid) {
+                    validator.showError('confirmError', result.message);
+                } else {
+                    document.getElementById('confirmError').style.display = 'none';
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем авторизацию
+            if (auth.isAuthenticated()) {
+                validator.showMessage('info', 'Вы уже авторизованы. Переход в личный кабинет...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                return;
+            }
+            
+            // Обработка формы
+            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Скрываем старые ошибки и сообщения
+                validator.hideAllErrors('registerForm');
+                document.getElementById('message').style.display = 'none';
+                
+                // Получаем данные формы
+                const formData = {
+                    username: document.getElementById('username').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value,
+                    confirmPassword: document.getElementById('confirmPassword').value
+                };
+                
+                // Валидация всех полей
+                let isValid = true;
+                
+                const usernameValidation = validator.validateUsername(formData.username);
+                if (!usernameValidation.isValid) {
+                    validator.showError('usernameError', usernameValidation.message);
+                    isValid = false;
+                }
+                
+                const emailValidation = validator.validateEmail(formData.email);
+                if (!emailValidation.isValid) {
+                    validator.showError('emailError', emailValidation.message);
+                    isValid = false;
+                }
+                
+                const passwordValidation = validator.validatePassword(formData.password);
+                if (!passwordValidation.isValid) {
+                    validator.showError('passwordError', passwordValidation.message);
+                    isValid = false;
+                }
+                
+                const confirmValidation = validator.validatePasswordConfirmation(
+                    formData.password, 
+                    formData.confirmPassword
+                );
+                
+                if (!confirmValidation.isValid) {
+                    validator.showError('confirmError', confirmValidation.message);
+                    isValid = false;
+                }
+                
+                if (!isValid) return;
+                
+                // Показываем индикатор загрузки
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Регистрация...';
+                submitBtn.disabled = true;
+                
+                try {
+                    // Выполняем регистрацию
+                    const result = await auth.register(formData);
+                    
+                    if (result.success) {
+                        validator.showMessage('success', 'Регистрация успешна! Переход в личный кабинет...');
+                        
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                        
+                    } else {
+                        validator.showMessage('error', result.message);
+                        
+                        // Показываем конкретную ошибку
+                        if (result.message.includes('Email')) {
+                            validator.showError('emailError', result.message);
+                        } else if (result.message.includes('имя пользователя')) {
+                            validator.showError('usernameError', result.message);
+                        }
+                    }
+                    
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    validator.showMessage('error', 'Ошибка регистрации');
+                    
+                } finally {
+                    // Восстанавливаем кнопку
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

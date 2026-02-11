@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h1>Вход в систему</h1>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Email или имя пользователя</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Введите email или имя пользователя">
+                <div class="error" id="usernameError"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Введите пароль">
+                <div class="error" id="passwordError"></div>
+            </div>
+            
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Запомнить меня</label>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">Войти</button>
+        </form>
+        
+        <div class="auth-link">
+            <a href="forgot-password.html">Забыли пароль?</a> | 
+            Нет аккаунта? <a href="register.html">Зарегистрироваться</a> | 
+            <a href="index.html">На главную</a>
+        </div>
+    </div>
+
+    <script src="js/database.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/validation.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем авторизацию
+            if (auth.isAuthenticated()) {
+                validator.showMessage('info', 'Вы уже авторизованы. Переход в личный кабинет...');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+                return;
+            }
+            
+            // Заполняем сохраненные данные
+            const rememberMe = localStorage.getItem('remember_me') === 'true';
+            const rememberedEmail = localStorage.getItem('remembered_email');
+            
+            if (rememberMe && rememberedEmail) {
+                document.getElementById('username').value = rememberedEmail;
+                document.getElementById('remember').checked = true;
+            }
+            
+            // Обработка формы
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Скрываем старые ошибки
+                validator.hideAllErrors('loginForm');
+                document.getElementById('message').style.display = 'none';
+                
+                // Получаем данные формы
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const rememberMe = document.getElementById('remember').checked;
+                
+                // Базовая валидация
+                let isValid = true;
+                
+                if (!username) {
+                    validator.showError('usernameError', 'Введите email или имя пользователя');
+                    isValid = false;
+                }
+                
+                if (!password) {
+                    validator.showError('passwordError', 'Введите пароль');
+                    isValid = false;
+                }
+                
+                if (!isValid) return;
+                
+                // Показываем индикатор загрузки
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Вход...';
+                submitBtn.disabled = true;
+                
+                try {
+                    // Выполняем вход
+                    const result = await auth.login(username, password, rememberMe);
+                    
+                    if (result.success) {
+                        validator.showMessage('success', 'Вход выполнен успешно! Переход в личный кабинет...');
+                        
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                        
+                    } else {
+                        validator.showMessage('error', result.message);
+                    }
+                    
+                } catch (error) {
+                    console.error('Login error:', error);
+                    validator.showMessage('error', 'Ошибка сети или сервера');
+                    
+                } finally {
+                    // Восстанавливаем кнопку
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
